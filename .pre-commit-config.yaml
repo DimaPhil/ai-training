@@ -6,3 +6,11 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: uv run pytest --cov=src --cov-fail-under=80
+        language: system
+        types: [python]
+        pass_filenames: false
