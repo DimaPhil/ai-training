@@ -106,7 +106,7 @@ def cmd_parse_shortcodes(args: argparse.Namespace) -> None:
             if shortcode in processed_shortcodes:
                 continue
 
-            logger.info(f"[{i+1}/{len(shortcodes)}] Fetching {shortcode}...")
+            logger.info(f"[{i + 1}/{len(shortcodes)}] Fetching {shortcode}...")
             try:
                 video = crawler.get_post_by_shortcode(shortcode)
                 if video:
