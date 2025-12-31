@@ -127,35 +127,32 @@ def run_pipeline_from_file(
         for post in videos_to_process:
             try:
                 result = _process_video(post, crawler, analyzer)
-                _append_result(result, results_file)
 
-                state.processed_shortcodes.append(post.shortcode)
-                _save_progress(state, output_dir)
-
-                processed_count += 1
-
+                # Only mark as processed if no error (so failed videos can be retried)
                 if result.error:
                     error_count += 1
                     logger.warning(f"Video {post.shortcode} had error: {result.error}")
-                elif result.is_exercise_video:
-                    logger.info(f"Analyzed exercise video: {post.shortcode}")
+                    logger.info(
+                        f"Video {post.shortcode} NOT marked as processed (will retry)"
+                    )
                 else:
-                    logger.info(f"Processed non-exercise video: {post.shortcode}")
+                    _append_result(result, results_file)
+                    state.processed_shortcodes.append(post.shortcode)
+                    _save_progress(state, output_dir)
+                    processed_count += 1
+
+                    if result.is_exercise_video:
+                        logger.info(f"Analyzed exercise video: {post.shortcode}")
+                    else:
+                        logger.info(f"Processed non-exercise video: {post.shortcode}")
 
             except Exception as e:
                 logger.error(f"Failed to process {post.shortcode}: {e}")
                 error_count += 1
-
-                state.processed_shortcodes.append(post.shortcode)
-                _save_progress(state, output_dir)
-
-                error_result = VideoResult(
-                    shortcode=post.shortcode,
-                    url=post.url,
-                    is_exercise_video=False,
-                    error=str(e),
+                # Don't mark as processed - will retry next run
+                logger.info(
+                    f"Video {post.shortcode} NOT marked as processed (will retry)"
                 )
-                _append_result(error_result, results_file)
 
     except KeyboardInterrupt:
         logger.info("Interrupted by user. Progress saved.")

@@ -20,10 +20,10 @@ from src.models import ExerciseAnalysis, GeneralInsights, VideoResult
 logger = logging.getLogger(__name__)
 
 # Gemini model to use
-MODEL_NAME = "gemini-3-flash-preview"
+MODEL_NAME = "gemini-2.5-flash-lite"
 
 # Rate limiting for Gemini API
-GEMINI_REQUEST_DELAY_SECONDS = 1.0
+GEMINI_REQUEST_DELAY_SECONDS = 5.0
 
 
 def _load_prompt() -> str:
@@ -73,8 +73,11 @@ class VideoAnalyzer:
 
     @retry(
         retry=retry_if_exception_type(Exception),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=10, min=10, max=120),
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=30, min=30, max=300),
+        before_sleep=lambda retry_state: logger.warning(
+            f"Gemini API error, retrying in {retry_state.next_action.sleep}s..."
+        ),
     )
     def _analyze_with_schema(self, video_file: types.File, schema: type) -> str:
         """Run analysis with a specific schema."""
